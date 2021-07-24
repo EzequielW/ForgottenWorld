@@ -1,0 +1,8 @@
+Historia:
+Un robot luego de un accidente pierde la memoria y se encuentra en un planeta desconocido.
+A lo largo de su viaje intenta recordar quien es y como volver a su lugar de origen.
+Al final descubre que el planeta desconocido era realmente su lugar de origen y los enemigos que mato eran aliados.
+
+Detalles:
+El robot puede recobrar su memoria a traves de fragmentos que encuentra el jugador.
+De esta forma al encontrar un fragmento tambien puede ganar una nueva habilidad.
