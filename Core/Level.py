@@ -24,14 +24,26 @@ class Level():
         # Load tiles from each tileset
         self.tilesets = {}
         for tileset in levelJson['tilesets']:
-            collision = False
-            for prop in tileset['properties']:
-                if prop['name'] == 'collision':
-                    collision = prop['value']
+            # Check if it has collision property
+            if 'properties' in tileset:
+                for prop in tileset['properties']:
+                    if prop['name'] == 'collision':
+                        collision = prop['value']
+
+            
 
             for tile in tileset['tiles']: 
                 image = None
                 speed = 1
+
+                offsetx = 0
+                offsety = 0
+                if 'tileoffset' in tileset:
+                    offsetx = (self.tileSize * tileset['tileoffset']['x']) // 64
+                    offsety = (self.tileSize * tileset['tileoffset']['y']) // 64
+                else:
+                    offsetx = 0
+                    offsety = 0
 
                 if "animation" in tile:
                     tileID = []
@@ -45,10 +57,10 @@ class Level():
                                 image.append(pygame.image.load(t['image'][3:]).convert_alpha())
                     # Convert to seconds
                     speed = speed / 1000
+                    image = Animation(image, speed)
                 else:
-                    image = [pygame.image.load(tile['image'][3:]).convert_alpha()]
+                    image = pygame.image.load(tile['image'][3:]).convert_alpha()
 
-                animation = Animation(image, speed)
                 rect = ()
                 if collision:
                     collRect = tile['objectgroup']['objects'][0]
@@ -58,7 +70,7 @@ class Level():
                     height = (self.tileSize * collRect['height']) // tile['imageheight']
                     rect = (x, y, width, height)
 
-                self.tilesets[(tileset['firstgid'] + tile['id'])] = (animation, rect)
+                self.tilesets[(tileset['firstgid'] + tile['id'])] = (image, rect, offsetx, offsety)
         
         #Create tiles for each layers
         self.layers = {}
@@ -70,8 +82,8 @@ class Level():
                     tileImg = layer['data'][layer['width']*j + i]
 
                     if tileImg != 0:
-                        x = i*self.tileSize
-                        y = j*self.tileSize
+                        x = i*self.tileSize + self.tilesets[tileImg][2]
+                        y = j*self.tileSize + self.tilesets[tileImg][3]
                         offsetX = offsetY = offsetWidth = offsetHeight = 0
                         #If it doesnt have collision offset leave to 0
                         if len(self.tilesets[tileImg][1]) != 0:
@@ -94,7 +106,7 @@ class Level():
         
         if velX == 0: collRect.height += 1
 
-        for tile in self.layers['Ground']:
+        for tile in self.layers['2Ground']:
             if not tile:
                 continue
 
@@ -113,18 +125,23 @@ class Level():
 
     def update(self, deltat):
         for tile in self.tilesets:
-            self.tilesets[tile][0].update(deltat)
+            if isinstance(self.tilesets[tile][0], Animation):
+                self.tilesets[tile][0].update(deltat)
 
     def draw(self, screen, cameraX):
+        maxWidth = screen.get_rect().width
         for layerKey in sorted(self.layers.keys()):
             for tile in self.layers[layerKey]:
                 if tile:
-                    image = self.tilesets[tile.imgID][0].getCurrentFrame()
-                    screen.blit(pygame.transform.scale(image, (self.tileSize, self.tileSize)), (tile.x-cameraX, tile.y))
+                    if tile.x - cameraX + self.tileSize >= 0 and tile.x - cameraX <= maxWidth:
+                        image = self.tilesets[tile.imgID][0]
+                        if isinstance(image, Animation):
+                            image = image.getCurrentFrame()
+                        screen.blit(pygame.transform.scale(image, (self.tileSize, self.tileSize)), (tile.x-cameraX, tile.y))
         
         # Show collision rectangle of the level
         if self.showCollRect:
-            for tile in self.layers['Ground']:
+            for tile in self.layers['2Ground']:
                 if tile:
                     rect = ((tile.collRect.x - cameraX, tile.collRect.y), (tile.collRect.width, tile.collRect.height))
                     pygame.draw.rect(screen, (0, 0, 255), rect, 2)

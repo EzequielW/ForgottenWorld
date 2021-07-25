@@ -10,11 +10,11 @@ class Animation():
         self.finished = False
 
     def getCurrentFrame(self):
-        return self.frames[round(self.counter)]
+        return self.frames[math.floor(self.counter)]
 
     def isFinished(self):
         isFinished = False
-        if self.counter >= len(self.frames) - 1:
+        if math.floor(self.counter) > len(self.frames) - 1:
             isFinished = True
         return isFinished
 

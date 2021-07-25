@@ -1,4 +1,5 @@
 import pygame
+import math
 from Core.Constants import Direction, AnimState, DAMAGE_VELX, DAMAGE_VELY
 
 class EnemyBehavior():
@@ -56,13 +57,14 @@ class ShootState():
 
         entity.currAnim = entity.animations[AnimState.SHOOT]
         entity.currAnim.reset()
+        entity.currAnim.speed = entity.projTypes[0].reloadTime
 
         entity.velX = 0
     
     def updateState(self, enemy, GRAVITY):
         entity = enemy.entity
 
-        if entity.projTypes[0].reloadCounter >= entity.projTypes[0].reloadTime:
+        if entity.projTypes[0].reloadCounter >= entity.projTypes[0].reloadTime and math.floor(entity.currAnim.counter) == (len(entity.currAnim.frames) - 1):
             entity.addProjectile(entity.projTypes[0])
 
 class HitState():
@@ -103,5 +105,5 @@ class DeadState():
     
     def updateState(self, enemy, GRAVITY):
         entity = enemy.entity
-        fadeCounter = 255 - 255 * (entity.currAnim.counter / (len(entity.currAnim.frames) - 1))
+        fadeCounter = abs(255 - 255 * (entity.currAnim.counter / (len(entity.currAnim.frames) - 1)))
         entity.effectsSprite.fill((255, 255, 255, fadeCounter), None, pygame.BLEND_RGBA_MULT)

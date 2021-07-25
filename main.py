@@ -11,7 +11,7 @@ from Core.SpriteSheet import SpriteSheet
 from Core.Entity import Entity
 from Core.Enemy import Enemy
 from Core.Projectile import ProjectileType
-from Core.Load import initFireball, initAndromalius, initDarkMage, initShadow, initPlayer
+from Core.Load import initFireball, initAndromalius, initDarkMage, initLavaHybrid, initShadow, initMageBullet, initPlayer
 from UI.UI import UserInterface
 
 SIZE = MAX_WIDTH, MAX_HEIGHT = 1024, 576 
@@ -21,6 +21,7 @@ GRAVITY = 9
 
 def main():
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode(SIZE)
 
     pygame.display.set_caption("Forgotten World")
@@ -28,25 +29,30 @@ def main():
 
     GAME_FONT = pygame.freetype.Font("Gotham.ttf", 24)
 
-    currentLevel = Level('Levels/Level_1.json', MAX_HEIGHT, showCollRect=True)
+    currentLevel = Level('Levels/Level_1.json', MAX_HEIGHT, showCollRect=False)
+    levelMusic = pygame.mixer.music.load("Assets/Sounds/high tech lab.wav")
+    pygame.mixer.music.play(loops=-1)
     background = pygame.image.load('Assets/Terrain/Background/Bright/Background.png').convert_alpha()
 
     # Init projectiles
     primProj = initFireball(currentLevel.tileSize, 1/3, 225, 0.4, 6, 0)
     secondProj = initFireball(currentLevel.tileSize, 1, 150, 0.5, 12, 70)
-    enemyProj = initFireball(currentLevel.tileSize, 1/3, 120, 1.5, 1, 0)
+    andromaliusProj = initMageBullet(currentLevel.tileSize, 1/2, 120, 1.5, 1, 0)
     darkMageProj = initShadow(currentLevel.tileSize, 2, 120, 1.5, 1, 0)
+    lavaHybrid = initFireball(currentLevel.tileSize, 1, 175, 1.5, 1, 0)
 
     # Init player
-    player = initPlayer(currentLevel.tileSize, 120, 50, [primProj, secondProj])
+    player = initPlayer(currentLevel.tileSize, 3000, 50, [primProj, secondProj])
     playerEntity = player.entity
 
     # Init enemies
     enemyList = []
-    newEnemy = initAndromalius(currentLevel.tileSize, 300, 50, 260, 380, player, [enemyProj])
+    newEnemy = initAndromalius(currentLevel.tileSize, 300, 50, 260, 380, player, [andromaliusProj])
     darkMage = initDarkMage(currentLevel.tileSize, 1500, 50, 1300, 1600, player, [darkMageProj])
+    lavaHybrid = initLavaHybrid(currentLevel.tileSize, 3300, 50, 3000, 3300, player, [lavaHybrid])
     enemyList.append(newEnemy)
     enemyList.append(darkMage)
+    enemyList.append(lavaHybrid)
 
     # Init user interface
     userInterface = UserInterface(player)

@@ -50,6 +50,41 @@ def initFireball(tileSize, scale, speed, reloadTime, damage, cost):
 
     return proj
 
+def initMageBullet(tileSize, scale, speed, reloadTime, damage, cost):
+    # Initialize projectile attributes
+    ssProj = SpriteSheet("Assets/Enemies/mage-bullet-13x13.png")
+    ssProjWidth = 13
+    ssProjHeight = 13
+
+    mageBulletRight = ssProj.imagesAt(((0 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (1 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (4 * ssProjWidth, 0, ssProjWidth, ssProjHeight)))
+
+    mageBulletLeft = ssProj.imagesAt(((0 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (1 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (4 * ssProjWidth, 0, ssProjWidth, ssProjHeight)))
+    
+    mageBulletLeft = [pygame.transform.flip(image, True, False) for image in mageBulletLeft]
+
+    hitAnim = [ssProj.imageAt((4 * ssProjWidth, 0, ssProjWidth, ssProjHeight))]
+
+    projWidth = round(tileSize * scale)
+    projHeight = round(tileSize * scale)
+
+    projAnim = { Direction.RIGHT: [pygame.transform.scale(image, (projWidth, projHeight)) for image in mageBulletRight], 
+                    Direction.LEFT: [pygame.transform.scale(image, (projWidth, projHeight)) for image in mageBulletLeft] }
+    
+    hitAnim = [pygame.transform.scale(image, (ssProjWidth, projHeight)) for image in hitAnim]
+    # Primary projectile
+    projRect = pygame.Rect((0, 0), (projWidth, projHeight))
+    proj = ProjectileType(projRect.width, projRect.height, projRect, speed, reloadTime, projAnim, hitAnim, damage, cost)
+
+    return proj
+
 def initShadow(tileSize, scale, speed, reloadTime, damage, cost):
     # Initialize projectile attributes
     ssProj = SpriteSheet("Assets/Enemies/shadow-80x70.png")
@@ -110,6 +145,47 @@ def initShadow(tileSize, scale, speed, reloadTime, damage, cost):
     proj = ProjectileType(projRect.width, projRect.height, projRect, speed, reloadTime, projAnim, hitAnim, damage, cost)
 
     return proj
+
+def initLavaHybrid(tileSize, x, y, startPoint, endPoint, player, projList):
+    rect = pygame.Rect((x, y), (round(130 * 1.353138), 130))
+    collRect = pygame.Rect((70, 0), (tileSize * 2, tileSize * 3))
+    speed = 30
+    jumpSpeed = 250
+
+    ss = SpriteSheet("Assets/Enemies/lavahybrid-2824x2087.png")
+    ssWidth = 2824
+    ssHeight = 2087
+
+    jump = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (0 * ssWidth, 0, ssWidth, ssHeight)), 
+        scaling=(rect.width, rect.height))
+
+    run = ss.imagesAt(((0 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (1 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (2 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (3 * ssWidth, ssHeight, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    shoot = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (1 * ssWidth, 0, ssWidth, ssHeight),
+        (2 * ssWidth, 0, ssWidth, ssHeight),
+        (3 * ssWidth, 0, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    dead = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (0 * ssWidth, 0, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    animations = {AnimState.JUMP: Animation(jump, 1), AnimState.RUN: Animation(run, 1), 
+        AnimState.SHOOT: Animation(shoot, 1), AnimState.DEAD: Animation(dead, 2, looped=False)}
+    
+    immuneTime = 0
+    hp = 100
+
+    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player)
+
+    return newEnemy
 
 def initAndromalius(tileSize, x, y, startPoint, endPoint, player, projList):
     rect = pygame.Rect((x, y), (57, 88))
