@@ -9,7 +9,7 @@ class PlayerBehavior():
         state = None
         entity = player.entity
         shootPrim = keys[pygame.K_j] and entity.projTypes[0].reloadCounter > entity.projTypes[0].reloadTime
-        shootSecond = keys[pygame.K_k] and entity.projTypes[1].reloadCounter > entity.projTypes[1].reloadTime
+        shootSecond = keys[pygame.K_k] and entity.projTypes[1].reloadCounter > entity.projTypes[1].reloadTime and player.currentSpecial >= entity.projTypes[1].cost
         stillShootPrim = entity.projTypes[0].reloadCounter < entity.projTypes[0].reloadTime
         stillShootSecond = entity.projTypes[1].reloadCounter < entity.projTypes[1].reloadTime
 
@@ -18,7 +18,12 @@ class PlayerBehavior():
         elif entity.directionHit:
             state = HitState()
         elif not player.entity.grounded or (player.triggerUp and player.jumpCount < 1):
-            state = JumpState()
+            if stillShootPrim or shootPrim or stillShootSecond or shootSecond:
+                state = JumpShootState()
+            else:
+                state = JumpState()
+        elif player.triggerSlide or player.sliding:
+            state = SlideState()
         elif stillShootPrim or shootPrim:
             if keys[pygame.K_a] or keys[pygame.K_d]:
                 state = RunShootState()
@@ -48,9 +53,14 @@ class IdleState():
 class RunState():
     def changeState(self, player):
         entity = player.entity
-        if entity.currAnim != entity.animations[AnimState.RUN_SHOOT]:
-            entity.currAnim.reset()
+
+        counter = 0
+        if entity.currAnim == entity.animations[AnimState.RUN_SHOOT]:
+            counter = entity.currAnim.counter
+
         entity.currAnim = entity.animations[AnimState.RUN]
+        entity.currAnim.reset()
+        entity.currAnim.counter = counter
 
     def handleInput(self, player, GRAVITY):
         keys = pygame.key.get_pressed()
@@ -65,15 +75,22 @@ class RunState():
 
 class JumpState():
     def changeState(self, player):
+        entity = player.entity
         keys = pygame.key.get_pressed()
+
+        counter = 0
+        if entity.currAnim == entity.animations[AnimState.JUMP_SHOOT]:
+           counter = (len(entity.animations[AnimState.JUMP].frames) - 1) * entity.currAnim.counter / (len(entity.currAnim.frames) - 1)
+        else:
+            player.sliding = False
+            player.jumpCount += 1
+            if player.triggerUp:
+                player.entity.velY = -player.entity.jumpSpeed
+                player.entity.grounded = False
+
         player.entity.currAnim = player.entity.animations[AnimState.JUMP]
         player.entity.currAnim.reset()
-
-        if player.triggerUp:
-            player.entity.velY = -player.entity.jumpSpeed
-            player.entity.grounded = False
-        
-        player.jumpCount += 1
+        player.entity.currAnim.counter = counter
 
     def handleInput(self, player, GRAVITY):
         keys = pygame.key.get_pressed()
@@ -132,27 +149,58 @@ class ShootState():
             entity.currAnim.speed = entity.projTypes[projNumber].reloadTime
             entity.addProjectile(entity.projTypes[projNumber])
 
-class RunShootState():
+class RunShootState(RunState):
     def changeState(self, player):
         entity = player.entity
-        if entity.currAnim != entity.animations[AnimState.RUN] or entity.currAnim != entity.animations[AnimState.RUN_SHOOT]:
-            entity.currAnim.reset()
+
+        counter = 0
+        if entity.currAnim == entity.animations[AnimState.RUN] or entity.currAnim == entity.animations[AnimState.RUN_SHOOT]:
+            counter = entity.currAnim.counter
+
         entity.currAnim = entity.animations[AnimState.RUN_SHOOT]
+        entity.currAnim.reset()
+        entity.currAnim.counter = counter
 
     def handleInput(self, player, GRAVITY):
         keys = pygame.key.get_pressed()
         entity = player.entity
 
-        if keys[pygame.K_a]:
-            entity.setFacing(Direction.LEFT)
-            entity.velX = -entity.speed
-        elif keys[pygame.K_d]:
-            entity.setFacing(Direction.RIGHT)
-            entity.velX = entity.speed
+        super().handleInput(player, GRAVITY)
         
         if keys[pygame.K_j] and entity.projTypes[0].reloadCounter > entity.projTypes[0].reloadTime:
             player.currentSpecial -= entity.projTypes[0].cost
             entity.addProjectile(entity.projTypes[0])
+
+class JumpShootState(JumpState):
+    def changeState(self, player):
+        entity = player.entity
+
+        counter = 0
+        if entity.currAnim == entity.animations[AnimState.JUMP]:
+            counter = (len(entity.animations[AnimState.JUMP_SHOOT].frames) - 1) * entity.currAnim.counter / (len(entity.currAnim.frames) - 1)
+        else:
+            player.sliding = False
+            player.jumpCount += 1
+            if player.triggerUp:
+                player.entity.velY = -player.entity.jumpSpeed
+                player.entity.grounded = False
+
+        entity.currAnim = entity.animations[AnimState.JUMP_SHOOT]
+        entity.currAnim.reset()
+        entity.currAnim.counter = counter
+
+    def handleInput(self, player, GRAVITY):
+        keys = pygame.key.get_pressed()
+        entity = player.entity
+
+        super().handleInput(player, GRAVITY)
+
+        if keys[pygame.K_j] and player.canShoot(entity.projTypes[0]):
+            player.currentSpecial -= entity.projTypes[0].cost
+            entity.addProjectile(entity.projTypes[0])
+        elif keys[pygame.K_k] and player.canShoot(entity.projTypes[1]):
+            player.currentSpecial -= entity.projTypes[1].cost
+            entity.addProjectile(entity.projTypes[1])
 
 class HitState():
     def changeState(self, player):
@@ -182,7 +230,31 @@ class DeadState():
         entity = player.entity
         entity.currAnim.reset()
         entity.currAnim = entity.animations[AnimState.DEAD]
+        entity.velX = 0
 
     def handleInput(self, player, GRAVITY):
         pass
+
+class SlideState():
+    def changeState(self, player):
+        entity = player.entity
+        self.direction = entity.facing
+
+        player.triggerSlide = False
+        player.sliding = True
+        entity.currAnim = entity.animations[AnimState.SLIDE]
+        entity.currAnim.reset()
+    
+    def handleInput(self, player, GRAVITY):
+        entity = player.entity
+
+        if entity.currAnim.finished:
+            player.sliding = False
+        else:
+            player.triggerSlide = False
+            if self.direction == Direction.RIGHT:
+                entity.velX = entity.speed * 2
+            else:
+                entity.velX = -entity.speed * 2
+        
         

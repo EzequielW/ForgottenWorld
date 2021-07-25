@@ -8,7 +8,6 @@ class Animation():
         self.looped = looped
         self.counter = counter
         self.finished = False
-        self.color = []
 
     def getCurrentFrame(self):
         return self.frames[round(self.counter)]
@@ -19,18 +18,9 @@ class Animation():
             isFinished = True
         return isFinished
 
-    def changeColor(self, color):
-        self.color.append(color)
-        for image in self.frames:
-            # add in new RGB values
-            image.fill(color, None, pygame.BLEND_RGBA_ADD)
-
     def reset(self):
         self.counter = 0
-        for image in self.frames:
-            for color in self.color:
-                image.fill(color, None, pygame.BLEND_RGBA_SUB)
-                self.color.remove(color)
+        self.finished = False
 
     def update(self, deltat):
         self.counter += deltat * len(self.frames) * (1 / self.speed)

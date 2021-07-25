@@ -10,9 +10,17 @@ class Player(pygame.sprite.Sprite):
         self.jumpCount = 0
         self.maxSpecial = maxSpecial
         self.currentSpecial = maxSpecial
+        self.triggerSlide = False
+        self.sliding = False
 
         self.behavior = PlayerState.PlayerBehavior()
         self.state = self.behavior.getState(self)
+
+    def canShoot(self, projType):
+        canShoot = False
+        if projType.reloadCounter > projType.reloadTime and projType.cost <= self.currentSpecial:
+            canShoot = True
+        return canShoot
 
     # Update player logic
     def update(self, deltat, GRAVITY, level, enemies):
