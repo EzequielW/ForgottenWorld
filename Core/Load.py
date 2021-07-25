@@ -50,7 +50,68 @@ def initFireball(tileSize, scale, speed, reloadTime, damage, cost):
 
     return proj
 
-def initAndromalius(tileSize, x, y, player, projList):
+def initShadow(tileSize, scale, speed, reloadTime, damage, cost):
+    # Initialize projectile attributes
+    ssProj = SpriteSheet("Assets/Enemies/shadow-80x70.png")
+    ssProjWidth = 80
+    ssProjHeight = 70
+
+    shadowRight = ssProj.imagesAt(((0 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (1 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (0 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight),
+                                (0 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (0 * ssProjWidth, 3 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 3 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (0 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight)))
+    
+    shadowRight = [pygame.transform.flip(image, True, False) for image in shadowRight]
+
+    shadowLeft = ssProj.imagesAt(((0 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (1 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 0, ssProjWidth, ssProjHeight), 
+                                (0 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, ssProjHeight, ssProjWidth, ssProjHeight),
+                                (0 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (0 * ssProjWidth, 3 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 3 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (0 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight)))
+
+    hitAnim = [ssProj.imageAt((3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight))]
+
+    projWidth = round(tileSize * 1.142857 * scale)
+    projHeight = round(tileSize * scale)
+
+    projAnim = { Direction.RIGHT: [pygame.transform.scale(image, (projWidth, projHeight)) for image in shadowRight], 
+                    Direction.LEFT: [pygame.transform.scale(image, (projWidth, projHeight)) for image in shadowLeft] }
+    
+    hitAnim = [pygame.transform.scale(image, (ssProjWidth, projHeight)) for image in hitAnim]
+    # Primary projectile
+    projRect = pygame.Rect((25, 10), (projWidth / 3, projHeight - 10))
+    proj = ProjectileType(projRect.width, projRect.height, projRect, speed, reloadTime, projAnim, hitAnim, damage, cost)
+
+    return proj
+
+def initAndromalius(tileSize, x, y, startPoint, endPoint, player, projList):
     rect = pygame.Rect((x, y), (57, 88))
     collRect = pygame.Rect((0, 0), (tileSize, tileSize * 2))
     speed = 30
@@ -95,13 +156,62 @@ def initAndromalius(tileSize, x, y, player, projList):
     hp = 20
 
     enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
-    newEnemy = Enemy(enemyEntity, 260, 380, player)
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player)
+
+    return newEnemy
+
+def initDarkMage(tileSize, x, y, startPoint, endPoint, player, projList):
+    rect = pygame.Rect((x, y), (85, 94))
+    collRect = pygame.Rect((25, 15), (tileSize, tileSize * 2))
+    speed = 30
+    jumpSpeed = 250
+
+    ss = SpriteSheet("Assets/Enemies/mage-1-85x94.png")
+    ssWidth = 85
+    ssHeight = 94
+
+    jump = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (0 * ssWidth, 0, ssWidth, ssHeight)), 
+        scaling=(rect.width, rect.height))
+
+    run = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (1 * ssWidth, 0, ssWidth, ssHeight),
+        (2 * ssWidth, 0, ssWidth, ssHeight),
+        (3 * ssWidth, 0, ssWidth, ssHeight),
+        (0 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (1 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (2 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (3 * ssWidth, ssHeight, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    shoot = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (1 * ssWidth, 0, ssWidth, ssHeight),
+        (2 * ssWidth, 0, ssWidth, ssHeight),
+        (3 * ssWidth, 0, ssWidth, ssHeight),
+        (0 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (1 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (2 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (3 * ssWidth, ssHeight, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    dead = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
+        (0 * ssWidth, 0, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    animations = {AnimState.JUMP: Animation(jump, 1), AnimState.RUN: Animation(run, 1), 
+        AnimState.SHOOT: Animation(shoot, 1), AnimState.DEAD: Animation(dead, 2, looped=False)}
+    
+    immuneTime = 0
+    hp = 35
+
+    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player)
 
     return newEnemy
 
 def initPlayer(tileSize, x, y, projList):
     # Initialize player attributes
-    rect = pygame.Rect((120, 50), (90, 90))
+    rect = pygame.Rect((x, y), (90, 90))
     # Player rectangle of collision
     collRect = pygame.Rect((20, 10), (tileSize, tileSize * 2))
 

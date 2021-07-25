@@ -54,27 +54,13 @@ class ShootState():
     def changeState(self, enemy):
         entity = enemy.entity
 
-        entity.currAnim = entity.animations[AnimState.RUN]
+        entity.currAnim = entity.animations[AnimState.SHOOT]
         entity.currAnim.reset()
 
-        if entity.facing == Direction.RIGHT:
-            entity.velX = entity.speed
-        else:
-            entity.velX = -entity.speed
+        entity.velX = 0
     
     def updateState(self, enemy, GRAVITY):
         entity = enemy.entity
-
-        if entity.facing == Direction.LEFT:
-            if entity.rect.x > enemy.pointStart:
-                entity.velX = -entity.speed
-            else:
-                entity.velX = 0
-        else:
-            if entity.rect.x + entity.collRect.width < enemy.pointEnd:
-                entity.velX = entity.speed
-            else:
-                entity.velX = 0
 
         if entity.projTypes[0].reloadCounter >= entity.projTypes[0].reloadTime:
             entity.addProjectile(entity.projTypes[0])
@@ -87,8 +73,10 @@ class HitState():
         entity.velY = -DAMAGE_VELY
         if entity.directionHit == Direction.RIGHT:
             entity.velX = DAMAGE_VELX
+            entity.setFacing(Direction.LEFT)
         else:
             entity.velX = -DAMAGE_VELX
+            entity.setFacing(Direction.RIGHT)
 
         entity.effectsSprite = entity.currAnim.getCurrentFrame().copy()
         entity.effectsSprite.fill((255, 0, 0, 0), None, pygame.BLEND_RGBA_ADD)

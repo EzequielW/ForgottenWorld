@@ -231,6 +231,7 @@ class DeadState():
         entity.currAnim.reset()
         entity.currAnim = entity.animations[AnimState.DEAD]
         entity.velX = 0
+        entity.velY = 0
 
     def handleInput(self, player, GRAVITY):
         pass

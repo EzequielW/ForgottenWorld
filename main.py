@@ -11,7 +11,7 @@ from Core.SpriteSheet import SpriteSheet
 from Core.Entity import Entity
 from Core.Enemy import Enemy
 from Core.Projectile import ProjectileType
-from Core.Load import initFireball, initAndromalius, initPlayer
+from Core.Load import initFireball, initAndromalius, initDarkMage, initShadow, initPlayer
 from UI.UI import UserInterface
 
 SIZE = MAX_WIDTH, MAX_HEIGHT = 1024, 576 
@@ -35,6 +35,7 @@ def main():
     primProj = initFireball(currentLevel.tileSize, 1/3, 225, 0.4, 6, 0)
     secondProj = initFireball(currentLevel.tileSize, 1, 150, 0.5, 12, 70)
     enemyProj = initFireball(currentLevel.tileSize, 1/3, 120, 1.5, 1, 0)
+    darkMageProj = initShadow(currentLevel.tileSize, 2, 120, 1.5, 1, 0)
 
     # Init player
     player = initPlayer(currentLevel.tileSize, 120, 50, [primProj, secondProj])
@@ -42,8 +43,10 @@ def main():
 
     # Init enemies
     enemyList = []
-    newEnemy = initAndromalius(currentLevel.tileSize, 300, 50, player, [enemyProj])
+    newEnemy = initAndromalius(currentLevel.tileSize, 300, 50, 260, 380, player, [enemyProj])
+    darkMage = initDarkMage(currentLevel.tileSize, 1500, 50, 1300, 1600, player, [darkMageProj])
     enemyList.append(newEnemy)
+    enemyList.append(darkMage)
 
     # Init user interface
     userInterface = UserInterface(player)
