@@ -42,7 +42,7 @@ def main():
     lavaHybrid = initFireball(currentLevel.tileSize, 1, 175, 1.5, 1, 0)
 
     # Init player
-    player = initPlayer(currentLevel.tileSize, 3000, 50, [primProj, secondProj])
+    player = initPlayer(currentLevel.tileSize, 120, 50, [primProj, secondProj])
     playerEntity = player.entity
 
     # Init enemies
@@ -59,8 +59,11 @@ def main():
 
     # Set camera attributes
     cameraX = 0
+    cameraVel = 50
     cameraThreshold = 100
     cameraMax = currentLevel.tileSize * currentLevel.rowSize - MAX_WIDTH
+    bossFightTrigger = 2600
+    cameraLock = False
 
     gameRun = True
     # Main game loop
@@ -93,7 +96,15 @@ def main():
         userInterface.update(player)
 
         #Camera movement
-        if playerEntity.velX > 0 and cameraX < cameraMax:
+        if cameraLock:
+            if cameraX < cameraMax:
+                cameraX += cameraVel * deltat
+                cameraVel += cameraVel * deltat
+            else:
+                cameraX = cameraMax
+        elif player.entity.rect.x >= bossFightTrigger:
+            cameraLock = True
+        elif playerEntity.velX > 0 and cameraX < cameraMax:
             if playerEntity.rect.x + playerEntity.rect.width - cameraX > MAX_WIDTH/2 + cameraThreshold:
                 cameraX = playerEntity.rect.x + playerEntity.rect.width - (MAX_WIDTH/2 + cameraThreshold)
             if cameraX > cameraMax: cameraX = cameraMax

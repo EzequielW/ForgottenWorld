@@ -204,7 +204,7 @@ def initLavaHybrid(tileSize, x, y, startPoint, endPoint, player, projList):
     hp = 100
 
     enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
-    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 4, BossBehavior())
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 3, BossBehavior())
     newEnemy.entity.setFacing(Direction.LEFT)
 
     return newEnemy

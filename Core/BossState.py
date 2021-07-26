@@ -15,10 +15,10 @@ class BossBehavior():
             state = HitState()
         elif not entity.grounded:
             state = JumpState()
-        elif boss.playerInSight(player):
-            state = ShootState()
         elif boss.stomp:
             state = StompState()
+        elif boss.playerInSight(player):
+            state = ShootState()
         else:
             state = IdleState()
 
@@ -28,8 +28,7 @@ class IdleState():
     def changeState(self, boss):
         boss.entity.velX = 0
         boss.entity.currAnim = boss.entity.animations[AnimState.IDLE]
-        if not isinstance(boss.state, HitState) and not isinstance(boss.state, JumpState):
-            boss.entity.currAnim.reset()
+        boss.entity.currAnim.reset()
 
     def updateState(self, boss, GRAVITY):
         if boss.idleCounter >= boss.idleTime:
@@ -58,9 +57,10 @@ class HitState(EnemyState.HitState):
 class StompState():
     def changeState(self, boss):
         boss.entity.currAnim = boss.entity.animations[AnimState.STOMP]
+        if boss.entity.currAnim.finished:
+            boss.entity.currAnim.reset()
     
     def updateState(self, boss, GRAVITY):
         if boss.entity.currAnim.finished:
             boss.idleCounter = 0
             boss.stomp = False
-            boss.entity.currAnim.reset()
