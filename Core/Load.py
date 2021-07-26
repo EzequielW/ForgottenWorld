@@ -6,6 +6,7 @@ from Core.Animation import Animation
 from Core.Entity import Entity
 from Core.Enemy import Enemy
 from Core.Player import Player
+from Core.BossState import BossBehavior
 
 def initFireball(tileSize, scale, speed, reloadTime, damage, cost):
     # Initialize projectile attributes
@@ -131,7 +132,10 @@ def initShadow(tileSize, scale, speed, reloadTime, damage, cost):
                                 (2 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
                                 (3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight)))
 
-    hitAnim = [ssProj.imageAt((3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight))]
+    hitAnim = ssProj.imagesAt(((0 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (1 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (2 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                (3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight)))
 
     projWidth = round(tileSize * 1.142857 * scale)
     projHeight = round(tileSize * scale)
@@ -142,48 +146,66 @@ def initShadow(tileSize, scale, speed, reloadTime, damage, cost):
     hitAnim = [pygame.transform.scale(image, (ssProjWidth, projHeight)) for image in hitAnim]
     # Primary projectile
     projRect = pygame.Rect((25, 10), (projWidth / 3, projHeight - 10))
-    proj = ProjectileType(projRect.width, projRect.height, projRect, speed, reloadTime, projAnim, hitAnim, damage, cost)
+    proj = ProjectileType(projRect.width, projRect.height, projRect, speed, reloadTime, projAnim, hitAnim, damage, cost, looped=False)
 
     return proj
 
 def initLavaHybrid(tileSize, x, y, startPoint, endPoint, player, projList):
-    rect = pygame.Rect((x, y), (round(130 * 1.353138), 130))
-    collRect = pygame.Rect((70, 0), (tileSize * 2, tileSize * 3))
+    rect = pygame.Rect((x, y), (round(tileSize * 8 * 1.353138), tileSize * 8))
+    collRect = pygame.Rect((tileSize * 5, tileSize * (13/6)), (tileSize * 2, tileSize * 4))
     speed = 30
     jumpSpeed = 250
 
-    ss = SpriteSheet("Assets/Enemies/lavahybrid-2824x2087.png")
-    ssWidth = 2824
-    ssHeight = 2087
+    ss = SpriteSheet("Assets/Enemies/lavahybrid-1333x985.png")
+    ssWidth = 1333
+    ssHeight = 985
 
-    jump = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
-        (0 * ssWidth, 0, ssWidth, ssHeight)), 
+    jump = ss.imagesAt(((5 * ssWidth, 0, ssWidth, ssHeight),
+        (5 * ssWidth, 0, ssWidth, ssHeight)), 
         scaling=(rect.width, rect.height))
 
-    run = ss.imagesAt(((0 * ssWidth, ssHeight, ssWidth, ssHeight),
-        (1 * ssWidth, ssHeight, ssWidth, ssHeight),
-        (2 * ssWidth, ssHeight, ssWidth, ssHeight),
-        (3 * ssWidth, ssHeight, ssWidth, ssHeight)),
+    idle = ss.imagesAt(((5 * ssWidth, 0, ssWidth, ssHeight),
+        (6 * ssWidth, 0, ssWidth, ssHeight),
+        (7 * ssWidth, 0, ssWidth, ssHeight),
+        (8 * ssWidth, 0, ssWidth, ssHeight)),
         scaling=(rect.width, rect.height))
 
-    shoot = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
-        (1 * ssWidth, 0, ssWidth, ssHeight),
-        (2 * ssWidth, 0, ssWidth, ssHeight),
-        (3 * ssWidth, 0, ssWidth, ssHeight)),
+    shoot = ss.imagesAt(((5 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (6 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (7 * ssWidth, ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, ssHeight, ssWidth, ssHeight)),
         scaling=(rect.width, rect.height))
 
-    dead = ss.imagesAt(((0 * ssWidth, 0, ssWidth, ssHeight),
-        (0 * ssWidth, 0, ssWidth, ssHeight)),
+    stomp = ss.imagesAt(((0 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (1 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (2 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (3 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (4 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (5 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (6 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (7 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, 2 * ssHeight, ssWidth, ssHeight),
+        (8 * ssWidth, 2 * ssHeight, ssWidth, ssHeight)),
         scaling=(rect.width, rect.height))
 
-    animations = {AnimState.JUMP: Animation(jump, 1), AnimState.RUN: Animation(run, 1), 
-        AnimState.SHOOT: Animation(shoot, 1), AnimState.DEAD: Animation(dead, 2, looped=False)}
+    dead = ss.imagesAt(((5 * ssWidth, 0, ssWidth, ssHeight),
+        (5 * ssWidth, 0, ssWidth, ssHeight)),
+        scaling=(rect.width, rect.height))
+
+    animations = {AnimState.JUMP: Animation(jump, 1), AnimState.IDLE: Animation(idle, 1), 
+        AnimState.SHOOT: Animation(shoot, 1), AnimState.STOMP: Animation(stomp, 2, looped=False),
+        AnimState.DEAD: Animation(dead, 2, looped=False)}
     
     immuneTime = 0
     hp = 100
 
     enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
-    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player)
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 4, BossBehavior())
+    newEnemy.entity.setFacing(Direction.LEFT)
 
     return newEnemy
 
@@ -232,7 +254,7 @@ def initAndromalius(tileSize, x, y, startPoint, endPoint, player, projList):
     hp = 20
 
     enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
-    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player)
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 1)
 
     return newEnemy
 
@@ -281,7 +303,7 @@ def initDarkMage(tileSize, x, y, startPoint, endPoint, player, projList):
     hp = 35
 
     enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
-    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player)
+    newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 1)
 
     return newEnemy
 

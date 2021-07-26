@@ -40,16 +40,16 @@ class Entity():
     def addProjectile(self, projType):
         projType.reloadCounter = 0
 
-        projX = self.rect.x
+        projX = self.rect.x + self.collRect.x - projType.width
         if self.facing == Direction.RIGHT:
-            projX += self.collRect.x + self.collRect.width
+            projX = self.rect.x + self.collRect.x + self.collRect.width
         projY = (self.rect.y + self.rect.height / 2 - projType.height / 2) 
 
         rect = pygame.Rect(projX, projY, projType.width, projType.height)
-        animation = Animation(projType.frames[self.facing], projType.reloadTime)
+        animation = Animation(projType.frames[self.facing], projType.reloadTime, looped=projType.looped)
         animationHit = Animation(projType.framesHit, 0.8, looped=False)
         newProj = Projectile(rect, projType.collRect, projType.speed, animation, 
-            animationHit, self.facing, projType.damage, projType.cost, showCollRect=True)
+            animationHit, self.facing, projType.damage, projType.cost, looped=projType.looped, showCollRect=True)
 
         self.projList.append(newProj)
 

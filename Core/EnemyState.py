@@ -24,7 +24,6 @@ class EnemyBehavior():
 class JumpState():
     def changeState(self, enemy):
         enemy.entity.currAnim = enemy.entity.animations[AnimState.JUMP]
-        enemy.entity.currAnim.reset()
     
     def updateState(self, enemy, GRAVITY):
         enemy.entity.velY += GRAVITY
@@ -32,9 +31,7 @@ class JumpState():
 class RunState():
     def changeState(self, enemy):
         entity = enemy.entity
-
         entity.currAnim = entity.animations[AnimState.RUN]
-        entity.currAnim.reset()
 
         if entity.facing == Direction.RIGHT:
             entity.velX = entity.speed
@@ -54,9 +51,7 @@ class RunState():
 class ShootState():
     def changeState(self, enemy):
         entity = enemy.entity
-
         entity.currAnim = entity.animations[AnimState.SHOOT]
-        entity.currAnim.reset()
         entity.currAnim.speed = entity.projTypes[0].reloadTime
 
         entity.velX = 0
@@ -64,13 +59,13 @@ class ShootState():
     def updateState(self, enemy, GRAVITY):
         entity = enemy.entity
 
-        if entity.projTypes[0].reloadCounter >= entity.projTypes[0].reloadTime and math.floor(entity.currAnim.counter) == (len(entity.currAnim.frames) - 1):
+        if entity.projTypes[0].reloadCounter >= entity.projTypes[0].reloadTime:
             entity.addProjectile(entity.projTypes[0])
 
 class HitState():
     def changeState(self, enemy):
         entity = enemy.entity
-        entity.grounded = False
+        enemy.hitCounter = 0
 
         entity.velY = -DAMAGE_VELY
         if entity.directionHit == Direction.RIGHT:
@@ -80,21 +75,12 @@ class HitState():
             entity.velX = -DAMAGE_VELX
             entity.setFacing(Direction.RIGHT)
 
-        entity.effectsSprite = entity.currAnim.getCurrentFrame().copy()
-        entity.effectsSprite.fill((255, 0, 0, 0), None, pygame.BLEND_RGBA_ADD)
-
     def updateState(self, enemy, GRAVITY):
-        entity = enemy.entity
-
-        entity.velY += GRAVITY
-        if entity.grounded:
-            entity.directionHit = None
-            entity.effectsSprite = None
+        pass
             
 class DeadState():
     def changeState(self, enemy):
         entity = enemy.entity
-        
         entity.velX = 0
         entity.velY = 0
         entity.currAnim.reset()
