@@ -11,7 +11,7 @@ from Core.SpriteSheet import SpriteSheet
 from Core.Entity import Entity
 from Core.Enemy import Enemy
 from Core.Projectile import ProjectileType
-from Core.Load import initFireball, initAndromalius, initDarkMage, initLavaHybrid, initShadow, initMageBullet, initPlayer
+from Core.Load import initFireball, initAndromalius, initDarkMage, initLavaHybrid, initShadow, initMageBullet, initFireballoga, initPlayer
 from UI.UI import UserInterface
 
 SIZE = MAX_WIDTH, MAX_HEIGHT = 1024, 576 
@@ -37,34 +37,26 @@ def main():
     # Init projectiles
     primProj = initFireball(currentLevel.tileSize, 1/3, 225, 0.5, 6, 0)
     secondProj = initFireball(currentLevel.tileSize, 1, 150, 0.5, 12, 70)
-    andromaliusProj = initMageBullet(currentLevel.tileSize, 1/2, 120, 1, 1, 0)
-    darkMageProj = initShadow(currentLevel.tileSize, 2, 120, 2, 1, 0)
-    lavaHybrid = initFireball(currentLevel.tileSize, 1, 175, 1.5, 1, 0)
 
     # Init player
     player = initPlayer(currentLevel.tileSize, 120, 50, [primProj, secondProj])
     playerEntity = player.entity
 
     # Init enemies
-    enemyList = []
-    newEnemy = initAndromalius(currentLevel.tileSize, 300, 50, 260, 380, player, [andromaliusProj])
-    darkMage = initDarkMage(currentLevel.tileSize, 1500, 50, 1300, 1600, player, [darkMageProj])
-    lavaHybrid = initLavaHybrid(currentLevel.tileSize, 3250, 50, 3100, 3300, player, [lavaHybrid])
-    enemyList.append(newEnemy)
-    enemyList.append(darkMage)
-    enemyList.append(lavaHybrid)
+    enemyList = initEnemies(currentLevel.tileSize, player)
 
     # Init user interface
-    userInterface = UserInterface(player)
+    userInterface = UserInterface(player, screen)
 
     # Set camera attributes
     cameraX = 0
     cameraVel = 50
     cameraThreshold = 100
     cameraMax = currentLevel.tileSize * currentLevel.rowSize - MAX_WIDTH
-    bossFightTrigger = 2600
+    bossFightTrigger = 2500
     cameraLock = False
 
+    gameRestart = False
     gameRun = True
     # Main game loop
     while(gameRun):
@@ -82,6 +74,20 @@ def main():
                     playerEntity.rect.x = 150
                     playerEntity.rect.y = 50
                     cameraX = 0
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if userInterface.restartButton.collidepoint(event.pos):
+                        gameRestart = True
+
+        # Restart game variables
+        if gameRestart:
+            cameraX = 0
+            cameraVel = 50
+            cameraLock = False
+            player = initPlayer(currentLevel.tileSize, 120, 50, [primProj, secondProj])
+            playerEntity = player.entity
+            enemyList = initEnemies(currentLevel.tileSize, player)
+            gameRestart = False
 
         #Game logic
         currentLevel.update(deltat)
@@ -128,6 +134,24 @@ def main():
         pygame.display.update()
 
     pygame.quit()
+
+def initEnemies(tileSize, player):
+    enemyList = []
+
+    # Init projectiles
+    andromaliusProj = initMageBullet(tileSize, 1/2, 120, 1, 1, 0)
+    darkMageProj = initShadow(tileSize, 2, 120, 2, 1, 0)
+    lavaHybridProj = initFireball(tileSize, 1, 175, 1.5, 1, 0)
+    lavaHybridCeilProj = initFireballoga(tileSize, 5/6, 175, 1, 1, 0)
+
+    newEnemy = initAndromalius(tileSize, 300, 50, 260, 380, player, [andromaliusProj])
+    darkMage = initDarkMage(tileSize, 1500, 50, 1300, 1600, player, [darkMageProj])
+    lavaHybrid = initLavaHybrid(tileSize, 3250, 50, 3100, 3300, player, [lavaHybridProj, lavaHybridCeilProj])
+    enemyList.append(newEnemy)
+    enemyList.append(darkMage)
+    enemyList.append(lavaHybrid)
+
+    return enemyList
 
 if __name__ == '__main__':
     main()

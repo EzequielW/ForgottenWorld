@@ -1,7 +1,7 @@
 from enum import Enum
 
 AnimState = Enum('AnimState', 'IDLE RUN JUMP DOUBLE_JUMP SHOOT RUN_SHOOT JUMP_SHOOT MELEE JUMP_MELEE SLIDE STOMP DEAD')
-Direction = Enum('Direction', 'RIGHT LEFT')
+Direction = Enum('Direction', 'RIGHT LEFT UP DOWN')
 ProjType = Enum('ProjType', 'PRIMARY SECONDARY')
 DAMAGE_VELX = 15
 DAMAGE_VELY = 40

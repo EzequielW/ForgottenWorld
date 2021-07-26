@@ -62,5 +62,10 @@ class StompState():
     
     def updateState(self, boss, GRAVITY):
         if boss.entity.currAnim.finished:
+            boss.entity.addProjectile(boss.entity.projTypes[1])
+            boss.entity.addProjectile(boss.entity.projTypes[1])
+            boss.entity.addProjectile(boss.entity.projTypes[1])
+            boss.entity.addProjectile(boss.entity.projTypes[1])
+            boss.entity.addProjectile(boss.entity.projTypes[1])
             boss.idleCounter = 0
             boss.stomp = False

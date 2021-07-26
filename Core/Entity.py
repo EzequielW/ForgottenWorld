@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 from Core.Projectile import Projectile
 from Core.Animation import Animation
@@ -43,13 +44,21 @@ class Entity():
         projX = self.rect.x + self.collRect.x - projType.width
         if self.facing == Direction.RIGHT:
             projX = self.rect.x + self.collRect.x + self.collRect.width
-        projY = (self.rect.y + self.rect.height / 2 - projType.height / 2) 
+        projY = (self.rect.y + self.rect.height / 2 - projType.height / 2)
+        
+        if projType.ceil:
+            projY = 0
+            if self.facing == Direction.RIGHT:
+                projX = random.randint(projX, projX + projType.projRange)
+            else:
+                projX = random.randint(projX-projType.projRange, projX)
 
         rect = pygame.Rect(projX, projY, projType.width, projType.height)
         animation = Animation(projType.frames[self.facing], projType.reloadTime, looped=projType.looped)
         animationHit = Animation(projType.framesHit, 0.8, looped=False)
         newProj = Projectile(rect, projType.collRect, projType.speed, animation, 
-            animationHit, self.facing, projType.damage, projType.cost, looped=projType.looped, showCollRect=True)
+            animationHit, self.facing, projType.damage, projType.cost, ceil=projType.ceil, 
+            looped=projType.looped, showCollRect=False)
 
         self.projList.append(newProj)
 

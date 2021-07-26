@@ -51,6 +51,51 @@ def initFireball(tileSize, scale, speed, reloadTime, damage, cost):
 
     return proj
 
+def initFireballoga(tileSize, scale, speed, reloadTime, damage, cost):
+    # Initialize projectile attributes
+    ssProj = SpriteSheet("Assets/Enemies/fireballoga-197x512.png")
+    ssProjWidth = 197
+    ssProjHeight = 512
+
+    fireballogaRight = ssProj.imagesAt(((0 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (1 * ssProjWidth, 1 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (0 * ssProjWidth, 0 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (1 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (0 * ssProjWidth, 1 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                        (1 * ssProjWidth, 0 * ssProjHeight, ssProjWidth, ssProjHeight)))
+    
+    fireballogaLeft = ssProj.imagesAt(((0 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (1 * ssProjWidth, 1 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (0 * ssProjWidth, 0 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (1 * ssProjWidth, 2 * ssProjHeight, ssProjWidth, ssProjHeight), 
+                                        (0 * ssProjWidth, 1 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                        (1 * ssProjWidth, 0 * ssProjHeight, ssProjWidth, ssProjHeight)))
+
+    fireballogaLeft = [pygame.transform.flip(image, True, False) for image in fireballogaLeft]
+
+    ssProjHit = SpriteSheet("Assets/Player/muzzle.png")
+    ssProjHitWidth = 19
+    ssProjHitHeight = 241
+
+    hitAnim = ssProjHit.imagesAt(((0 * ssProjHitWidth, 0, ssProjHitWidth, ssProjHitHeight),
+    (1 * ssProjHitWidth, 0, ssProjHitWidth, ssProjHitHeight),
+    (2 * ssProjHitWidth, 0, ssProjHitWidth, ssProjHitHeight),
+    (3 * ssProjHitWidth, 0, ssProjHitWidth, ssProjHitHeight),
+    (4 * ssProjHitWidth, 0, ssProjHitWidth, ssProjHitHeight)))
+
+    projWidth = round(tileSize * scale)
+    projHeight = round(tileSize * 2.59898 * scale)
+
+    projAnim = { Direction.RIGHT: [pygame.transform.scale(image, (projWidth, projHeight)) for image in fireballogaRight], 
+                    Direction.LEFT: [pygame.transform.scale(image, (projWidth, projHeight)) for image in fireballogaLeft] }
+    
+    hitAnim = [pygame.transform.scale(image, (ssProjHitWidth, projHeight)) for image in hitAnim]
+    # Primary projectile
+    projRect = pygame.Rect((0, 0), (projWidth, projHeight))
+    proj = ProjectileType(projRect.width, projRect.height, projRect, speed, reloadTime, projAnim, hitAnim, damage, cost, ceil=True, projRange=600)
+
+    return proj
+
 def initMageBullet(tileSize, scale, speed, reloadTime, damage, cost):
     # Initialize projectile attributes
     ssProj = SpriteSheet("Assets/Enemies/mage-bullet-13x13.png")
@@ -132,10 +177,8 @@ def initShadow(tileSize, scale, speed, reloadTime, damage, cost):
                                 (2 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
                                 (3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight)))
 
-    hitAnim = ssProj.imagesAt(((0 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight),
-                                (1 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
-                                (2 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight), 
-                                (3 * ssProjWidth, 4 * ssProjHeight, ssProjWidth, ssProjHeight)))
+    hitAnim = ssProj.imagesAt(((2 * ssProjWidth, 3 * ssProjHeight, ssProjWidth, ssProjHeight),
+                                (2 * ssProjWidth, 3 * ssProjHeight, ssProjWidth, ssProjHeight)))
 
     projWidth = round(tileSize * 1.142857 * scale)
     projHeight = round(tileSize * scale)
@@ -203,7 +246,7 @@ def initLavaHybrid(tileSize, x, y, startPoint, endPoint, player, projList):
     immuneTime = 0
     hp = 100
 
-    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
+    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=False)
     newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 3, BossBehavior())
     newEnemy.entity.setFacing(Direction.LEFT)
 
@@ -253,7 +296,7 @@ def initAndromalius(tileSize, x, y, startPoint, endPoint, player, projList):
     immuneTime = 0
     hp = 20
 
-    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
+    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=False)
     newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 1)
 
     return newEnemy
@@ -302,7 +345,7 @@ def initDarkMage(tileSize, x, y, startPoint, endPoint, player, projList):
     immuneTime = 0
     hp = 35
 
-    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=True)
+    enemyEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], hp, immuneTime, projList, showCollRect=False)
     newEnemy = Enemy(enemyEntity, startPoint, endPoint, player, 0.2, 1)
 
     return newEnemy
@@ -417,7 +460,7 @@ def initPlayer(tileSize, x, y, projList):
     immuneTime = 3
     lifes = 3
 
-    playerEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], lifes, immuneTime, projList, showCollRect = True)
+    playerEntity = Entity(rect, collRect, speed, jumpSpeed, animations, animations[AnimState.JUMP], lifes, immuneTime, projList, showCollRect = False)
     player = Player(playerEntity, 100)
 
     return player

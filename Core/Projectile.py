@@ -3,7 +3,7 @@ import math
 from Core.Constants import Direction
 
 class ProjectileType(object):
-    def __init__(self, width, height, collRect, speed, reloadTime, frames, framesHit, damage, cost, looped=True):
+    def __init__(self, width, height, collRect, speed, reloadTime, frames, framesHit, damage, cost, ceil=False, projRange=-1, looped=True):
         self.width = width
         self.height = height
         self.collRect = collRect
@@ -15,13 +15,15 @@ class ProjectileType(object):
         self.damage = damage
         self.cost = cost
         self.looped = looped
+        self.ceil = ceil
+        self.projRange = projRange
     
     def update(self, deltat):
         if self.reloadCounter <= self.reloadTime:
             self.reloadCounter += deltat
 
 class Projectile(object):
-    def __init__(self, rect, collRect, speed, animation, animationHit, facing, damage, cost, looped=True, showCollRect = False):
+    def __init__(self, rect, collRect, speed, animation, animationHit, facing, damage, cost, ceil=False, looped=True, showCollRect = False):
         self.rect = rect
         self.collRect = collRect
         self.speed = speed
@@ -34,6 +36,7 @@ class Projectile(object):
         self.damage = damage
         self.cost = cost
         self.looped = looped
+        self.ceil = ceil
 
         self.hit = False    
         self.showCollRect = showCollRect
@@ -50,7 +53,11 @@ class Projectile(object):
         return outside
 
     def update(self, deltat):
-        self.rect.x += round(self.speed * deltat)
+        if self.ceil:
+            self.rect.y -= round(self.speed * deltat)
+        else:
+            self.rect.x += round(self.speed * deltat)
+
         if not self.looped and math.floor(self.animation.counter) == len(self.animation.frames) - 1:
             self.hit = True
 
